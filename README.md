@@ -16,6 +16,9 @@ This project demonstrates how an end-to-end voice assistant can be constructed u
 
 The assistant reflects the early-stage design of AI systems often seen in research prototypes and cinematic AI labs — capable, responsive, but intentionally transparent.
 
+  ![image alt]()
+
+
 ---
 
 ## Agent Architecture & Cognitive Flow
