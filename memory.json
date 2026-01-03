@@ -1,0 +1,11 @@
+{
+  "profiles": {
+    "default": {
+      "name": null,
+      "preferences": {
+        "responseStyle": "short"
+      },
+      "history": []
+    }
+  }
+}

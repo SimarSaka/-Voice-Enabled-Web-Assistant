@@ -1,0 +1,383 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Voice Assistant</title>
+  <link rel="stylesheet" href="./css/styles.css" />
+</head>
+
+<body>
+  <div class="bg"></div>
+
+  <div class="shell">
+    <header class="topbar">
+      <div class="brand">
+        <div class="logo">VA</div>
+        <div class="brand-text">
+          <div class="brand-title">Voice Assistant</div>
+          <div class="brand-subtitle">Browser-only • Commands • Notes • Timers</div>
+        </div>
+      </div>
+
+      <div class="status-pill">
+        <span class="status-dot" id="status-dot"></span>
+        <span class="status-text" id="status-text">Ready</span>
+      </div>
+    </header>
+
+    <main class="card">
+      <div class="hero">
+        <h1>Ask anything</h1>
+        <p>Tap the mic, speak, and the assistant will respond.</p>
+      </div>
+
+      <div class="actions">
+        <div class="btn-row">
+          <button id="start-btn" class="mic-btn" type="button">
+            <span class="mic-emoji">🎤</span>
+            <span id="mic-label">Start Listening</span>
+          </button>
+
+          <button id="stop-btn" class="ghost-btn" type="button">Stop</button>
+          <button id="clear-btn" class="ghost-btn" type="button">Clear</button>
+        </div>
+
+        <div class="quick">
+          <span class="chip">“open youtube”</span>
+          <span class="chip">“time”</span>
+          <span class="chip">“tell me a joke”</span>
+          <span class="chip">“note buy milk”</span>
+          <span class="chip">“show notes”</span>
+          <span class="chip">“set timer 10 seconds”</span>
+        </div>
+      </div>
+
+      <section class="panel">
+        <div class="panel-head">
+          <div class="panel-title">Conversation</div>
+          <div class="panel-hint">Chrome/Edge recommended</div>
+        </div>
+
+        <div id="log" class="log"></div>
+      </section>
+
+      <section class="panel">
+        <div class="panel-head">
+          <div class="panel-title">Built-in Commands</div>
+          <div class="panel-hint">Say exactly like this</div>
+        </div>
+
+        <div class="cmd-grid">
+          <div class="cmd"><b>Basics</b><span>hello, who are you, how are you, help</span></div>
+          <div class="cmd"><b>Web</b><span>open google, open youtube, open github, open linkedin, open news</span></div>
+          <div class="cmd"><b>Time</b><span>time, date, day</span></div>
+          <div class="cmd"><b>Fun</b><span>tell me a joke, read a fact, motivate me, flip a coin, roll a dice</span></div>
+          <div class="cmd"><b>Notes</b><span>note &lt;text&gt;, show notes, clear notes</span></div>
+          <div class="cmd"><b>Math</b><span>calculate 12 plus 5, calculate 9 * 7, calculate 100 / 4</span></div>
+          <div class="cmd"><b>Timer</b><span>set timer 10 seconds, set timer 2 minutes, cancel timer</span></div>
+          <div class="cmd"><b>Theme</b><span>dark mode, light mode</span></div>
+        </div>
+      </section>
+
+      <footer class="footer">
+        Runs fully in browser • No backend required for these commands
+      </footer>
+    </main>
+  </div>
+
+  <script>
+    // ---------- UI helpers ----------
+    const logDiv = document.getElementById("log");
+    const startBtn = document.getElementById("start-btn");
+    const stopBtn  = document.getElementById("stop-btn");
+    const clearBtn = document.getElementById("clear-btn");
+    const statusDot = document.getElementById("status-dot");
+    const statusText = document.getElementById("status-text");
+    const micLabel = document.getElementById("mic-label");
+
+    function setStatus(state) {
+      // ready | listening | thinking | error
+      if (state === "listening") {
+        statusDot.style.background = "rgba(56,211,159,.95)";
+        statusDot.style.boxShadow = "0 0 0 4px rgba(56,211,159,.14)";
+        statusText.textContent = "Listening";
+        startBtn.classList.add("listening");
+        micLabel.textContent = "Listening…";
+      } else if (state === "thinking") {
+        statusDot.style.background = "rgba(255,209,102,.95)";
+        statusDot.style.boxShadow = "0 0 0 4px rgba(255,209,102,.14)";
+        statusText.textContent = "Thinking";
+        startBtn.classList.remove("listening");
+        micLabel.textContent = "Start Listening";
+      } else if (state === "error") {
+        statusDot.style.background = "rgba(255,77,109,.95)";
+        statusDot.style.boxShadow = "0 0 0 4px rgba(255,77,109,.14)";
+        statusText.textContent = "Error";
+        startBtn.classList.remove("listening");
+        micLabel.textContent = "Start Listening";
+      } else {
+        statusDot.style.background = "rgba(56,211,159,.95)";
+        statusDot.style.boxShadow = "0 0 0 4px rgba(56,211,159,.14)";
+        statusText.textContent = "Ready";
+        startBtn.classList.remove("listening");
+        micLabel.textContent = "Start Listening";
+      }
+    }
+
+    function addBubble(role, text) {
+      const p = document.createElement("p");
+      p.className = "bubble " + role;
+      p.textContent = (role === "user" ? "You: " : role === "assistant" ? "Assistant: " : "") + text;
+      logDiv.appendChild(p);
+      logDiv.scrollTop = logDiv.scrollHeight;
+    }
+
+    function speak(text) {
+      addBubble("assistant", text);
+      const synth = window.speechSynthesis;
+      const u = new SpeechSynthesisUtterance(text);
+      u.lang = "en-US";
+      u.rate = 1;
+      u.pitch = 1;
+      synth.cancel();
+      synth.speak(u);
+    }
+
+    // ---------- Speech Recognition ----------
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    let recognition = null;
+
+    if (SpeechRecognition) {
+      recognition = new SpeechRecognition();
+      recognition.lang = "en-US";
+      recognition.interimResults = false;
+    } else {
+      setStatus("error");
+      speak("Speech recognition is not supported here. Please use Chrome or Edge.");
+      startBtn.disabled = true;
+      stopBtn.disabled = true;
+    }
+
+    // ---------- Storage (Notes + Theme) ----------
+    const NOTES_KEY = "va_notes_v1";
+    const THEME_KEY = "va_theme_v1";
+    let timerId = null;
+
+    function getNotes() {
+      try { return JSON.parse(localStorage.getItem(NOTES_KEY) || "[]"); }
+      catch { return []; }
+    }
+    function setNotes(notes) {
+      localStorage.setItem(NOTES_KEY, JSON.stringify(notes));
+    }
+
+    function setTheme(mode) {
+      document.documentElement.setAttribute("data-theme", mode);
+      localStorage.setItem(THEME_KEY, mode);
+      speak(`Switched to ${mode} mode.`);
+    }
+    const savedTheme = localStorage.getItem(THEME_KEY);
+    if (savedTheme) document.documentElement.setAttribute("data-theme", savedTheme);
+
+    // ---------- Command helpers ----------
+    const openUrl = (url) => window.open(url, "_blank", "noopener,noreferrer");
+
+    const jokes = [
+      "Why don't scientists trust atoms? Because they make up everything!",
+      "Why did the scarecrow win an award? Because he was outstanding in his field!",
+      "Why don't skeletons fight each other? They don't have the guts.",
+      "What do you call fake spaghetti? An impasta!",
+      "Why can't your nose be 12 inches long? Because then it would be a foot!"
+    ];
+
+    const facts = [
+      "Honey never spoils — sealed honey can last thousands of years.",
+      "Octopuses have three hearts and blue blood.",
+      "A day on Venus is longer than a year on Venus.",
+      "Bananas are berries, but strawberries aren't.",
+      "Sharks existed before trees."
+    ];
+
+    const quotes = [
+      "Push yourself, because no one else is going to do it for you.",
+      "Success is not final; failure is not fatal: it is the courage to continue that counts.",
+      "The only way to do great work is to love what you do.",
+      "Believe you can and you're halfway there.",
+      "Your limitation is only your imagination."
+    ];
+
+    function rand(arr) { return arr[Math.floor(Math.random() * arr.length)]; }
+
+    // Basic natural math: "calculate 12 plus 5" / "calculate 9 * 7"
+    function tryCalc(text) {
+      let t = text.toLowerCase().replace(/^calculate\s+/, "").trim();
+
+      // word operators
+      t = t.replace(/\bplus\b/g, "+")
+           .replace(/\bminus\b/g, "-")
+           .replace(/\btimes\b/g, "*")
+           .replace(/\bmultiplied by\b/g, "*")
+           .replace(/\bdivide by\b/g, "/")
+           .replace(/\bdivided by\b/g, "/");
+
+      // allow only digits, spaces, dots, and operators
+      if (!/^[0-9+\-*/().\s]+$/.test(t)) return null;
+
+      try {
+        // eslint-disable-next-line no-new-func
+        const result = Function("return (" + t + ")")();
+        if (typeof result === "number" && Number.isFinite(result)) return result;
+        return null;
+      } catch {
+        return null;
+      }
+    }
+
+    function parseTimer(text) {
+      // "set timer 10 seconds" or "set timer 2 minutes"
+      const m = text.toLowerCase().match(/set timer\s+(\d+)\s*(second|seconds|minute|minutes)/);
+      if (!m) return null;
+      const n = Number(m[1]);
+      const unit = m[2];
+      if (!Number.isFinite(n) || n <= 0) return null;
+      return unit.startsWith("minute") ? n * 60 : n;
+    }
+
+    // ---------- Command Registry ----------
+    function handleCommand(raw) {
+      const cmd = raw.trim();
+      const lc = cmd.toLowerCase();
+
+      addBubble("user", cmd);
+
+      // greetings
+      if (/^(hi|hello)\b/.test(lc)) return speak("Hello! How can I help?");
+      if (lc.includes("who are you")) return speak("I’m your voice assistant. I can open sites, tell time, take notes, run timers, and more.");
+      if (lc.includes("how are you")) return speak("I’m running smoothly. What should we do?");
+      if (lc === "help" || lc.includes("what can you do")) return speak("Try: open youtube, time, tell me a joke, note buy milk, show notes, set timer 10 seconds, calculate 9 * 7.");
+
+      // web
+      if (lc.includes("open google")) { speak("Opening Google."); return openUrl("https://www.google.com"); }
+      if (lc.includes("open youtube")) { speak("Opening YouTube."); return openUrl("https://www.youtube.com"); }
+      if (lc.includes("open github")) { speak("Opening GitHub."); return openUrl("https://github.com"); }
+      if (lc.includes("open linkedin")) { speak("Opening LinkedIn."); return openUrl("https://www.linkedin.com"); }
+      if (lc.includes("open news")) { speak("Opening News."); return openUrl("https://news.google.com"); }
+      if (lc.startsWith("open ") && lc.includes("http")) {
+        const url = cmd.split(" ").slice(1).join(" ").trim();
+        speak("Opening link.");
+        return openUrl(url);
+      }
+
+      // time/date/day
+      if (lc === "time" || lc.includes("current time")) return speak(`The current time is ${new Date().toLocaleTimeString()}.`);
+      if (lc === "date" || lc.includes("today's date")) return speak(`Today's date is ${new Date().toDateString()}.`);
+      if (lc.includes("day")) return speak(`Today is ${new Date().toLocaleDateString(undefined, { weekday: "long" })}.`);
+
+      // fun
+      if (lc.includes("tell me a joke")) return speak(rand(jokes));
+      if (lc.includes("read a fact") || lc.includes("tell me a fact")) return speak(rand(facts));
+      if (lc.includes("motivate me") || lc.includes("give me a quote")) return speak(rand(quotes));
+      if (lc.includes("flip a coin")) return speak(Math.random() > 0.5 ? "Heads." : "Tails.");
+      if (lc.includes("roll a dice") || lc.includes("roll a die")) return speak(`You rolled a ${Math.floor(Math.random() * 6) + 1}.`);
+
+      // notes
+      if (lc.startsWith("note ")) {
+        const text = cmd.slice(5).trim();
+        if (!text) return speak("Say: note followed by your message.");
+        const notes = getNotes();
+        notes.push({ text, ts: Date.now() });
+        setNotes(notes);
+        return speak("Saved.");
+      }
+      if (lc.includes("show notes")) {
+        const notes = getNotes();
+        if (!notes.length) return speak("No notes yet.");
+        const lines = notes.slice(-10).map((n, i) => `${i + 1}. ${n.text}`);
+        return speak("Your latest notes: " + lines.join(" | "));
+      }
+      if (lc.includes("clear notes")) {
+        setNotes([]);
+        return speak("Cleared all notes.");
+      }
+
+      // math
+      if (lc.startsWith("calculate ")) {
+        const r = tryCalc(cmd);
+        if (r === null) return speak("I couldn't calculate that. Try: calculate 12 plus 5.");
+        return speak(`Answer is ${r}.`);
+      }
+
+      // timer
+      if (lc.startsWith("set timer")) {
+        const seconds = parseTimer(cmd);
+        if (!seconds) return speak("Try: set timer 10 seconds or set timer 2 minutes.");
+        if (timerId) clearTimeout(timerId);
+
+        speak(`Timer set for ${seconds} seconds.`);
+        timerId = setTimeout(() => {
+          timerId = null;
+          speak("Time’s up!");
+        }, seconds * 1000);
+        return;
+      }
+      if (lc.includes("cancel timer") || lc.includes("stop timer")) {
+        if (!timerId) return speak("No active timer.");
+        clearTimeout(timerId);
+        timerId = null;
+        return speak("Timer cancelled.");
+      }
+
+      // theme
+      if (lc.includes("dark mode")) return setTheme("dark");
+      if (lc.includes("light mode")) return setTheme("light");
+
+      // default
+      speak("I didn't recognise that command. Say 'help' to see what I can do.");
+    }
+
+    // ---------- Button wiring ----------
+    clearBtn.addEventListener("click", () => {
+      logDiv.innerHTML = "";
+      speak("Cleared the chat.");
+    });
+
+    stopBtn.addEventListener("click", () => {
+      try { recognition && recognition.abort(); } catch {}
+      setStatus("ready");
+      speak("Stopped listening.");
+    });
+
+    startBtn.addEventListener("click", () => {
+      if (!recognition) return;
+      setStatus("listening");
+      recognition.start();
+    });
+
+    if (recognition) {
+      recognition.onresult = (event) => {
+        setStatus("thinking");
+        const text = event.results[0][0].transcript || "";
+        handleCommand(text);
+        setStatus("ready");
+      };
+
+      recognition.onerror = (event) => {
+        setStatus("error");
+        speak("I encountered an error. Please try again.");
+        console.log("Speech error:", event.error);
+        setTimeout(() => setStatus("ready"), 900);
+      };
+
+      recognition.onend = () => {
+        // If user stopped talking, end event fires. Return to ready unless error state.
+        if (statusText.textContent === "Listening") setStatus("ready");
+      };
+    }
+
+    // initial
+    setStatus("ready");
+    addBubble("assistant", "Ready. Say “help” to see commands.");
+  </script>
+</body>
+</html>
