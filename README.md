@@ -44,7 +44,7 @@ Executes side effects (opening URLs, timers, storage) and produces spoken output
 
 This architecture mirrors real-world agentic system design, where AI is used selectively rather than universally.
 
-![image alt](https://github.com/SimarSaka/-Voice-Enabled-Web-Assistant/blob/main/third.jpeg?raw=true)
+![image alt](https://github.com/SimarSaka/-Voice-Enabled-Web-Assistant/blob/main/second.jpeg?raw=true)
 
 ---
 
@@ -70,7 +70,7 @@ This architecture mirrors real-world agentic system design, where AI is used sel
 - Backend prompt construction and response parsing  
 - API key isolation via environment variables  
 
-![image alt](https://github.com/SimarSaka/-Voice-Enabled-Web-Assistant/blob/main/third.jpeg?raw=true)
+![image alt](https://github.com/SimarSaka/-Voice-Enabled-Web-Assistant/blob/main/first.jpeg?raw=true)
 ---
 
 
