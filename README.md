@@ -16,7 +16,7 @@ This project demonstrates how an end-to-end voice assistant can be constructed u
 
 The assistant reflects the early-stage design of AI systems often seen in research prototypes and cinematic AI labs — capable, responsive, but intentionally transparent.
 
-  ![image alt]()
+  ![image alt](https://github.com/SimarSaka/-Voice-Enabled-Web-Assistant/blob/main/third.jpeg?raw=true)
 
 
 ---
@@ -44,6 +44,8 @@ Executes side effects (opening URLs, timers, storage) and produces spoken output
 
 This architecture mirrors real-world agentic system design, where AI is used selectively rather than universally.
 
+![image alt](https://github.com/SimarSaka/-Voice-Enabled-Web-Assistant/blob/main/third.jpeg?raw=true)
+
 ---
 
 ## Core Capabilities
@@ -68,6 +70,7 @@ This architecture mirrors real-world agentic system design, where AI is used sel
 - Backend prompt construction and response parsing  
 - API key isolation via environment variables  
 
+![image alt](https://github.com/SimarSaka/-Voice-Enabled-Web-Assistant/blob/main/third.jpeg?raw=true)
 ---
 
 
