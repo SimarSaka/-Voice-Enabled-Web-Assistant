@@ -1,115 +1,105 @@
-# Voice Assistant (Browser + AI Backend)
+## 1) System Architecture at a Glance
+This system is split into four main parts: **Browser (UI)**, **Client Logic (reflexes)**, **Backend (brain + memory)**, and **External Systems (AI + OS)**.  
+Simple commands are handled locally, while complex queries go to the backend and AI.
 
-A modular voice assistant system that integrates **speech processing**, **intent handling**, and **large language model (LLM) reasoning**, designed to behave like a lightweight **AI agent** operating in a constrained environment.
-
-The project prioritises clarity of agent behaviour, explicit decision flow, and clean separation between **symbolic logic** and **neural reasoning**.
-
----
-
-## What This Project Is
-
-This project demonstrates how an end-to-end voice assistant can be constructed using:
-
-- **Speech-to-text (STT)** and **text-to-speech (TTS)** pipelines at the browser level  
-- A **Node.js backend** connected to a **Large Language Model (LLM)** via API  
-- A hybrid approach combining **rule-based intent handling** with **neural language understanding**
-
-The assistant reflects the early-stage design of AI systems often seen in research prototypes and cinematic AI labs — capable, responsive, but intentionally transparent.
-
-  ![image alt](https://github.com/SimarSaka/-Voice-Enabled-Web-Assistant/blob/main/third.jpeg?raw=true)
-
+ ![image alt](https://github.com/SimarSaka/-Voice-Enabled-Web-Assistant/blob/main/Fig01.jpeg?raw=true)
 
 ---
 
-## Agent Architecture & Cognitive Flow
+## 2) Presentation Layer (User Interface)
+The assistant UI is designed with a clean glass-like look.  
+It shows **status**, a **main microphone button**, and **conversation history**, keeping the interaction simple and voice-first.
 
-The assistant follows a simplified **agent perception–decision–action loop**:
-
-### Perception Layer
-Captures raw audio input and converts it to text using browser-native **speech recognition (STT)**.
-
-### Intent Interpretation Layer
-Applies deterministic intent matching for known commands and lightweight semantic routing to determine whether the query can be handled locally or requires LLM-based reasoning.
-
-### Decision & Routing Layer
-- Symbolic execution path for predefined commands (timers, notes, navigation)  
-- Neural execution path for open-ended, explanatory, or ambiguous queries  
-
-### Response Generation Layer
-- Local responses generated via deterministic logic  
-- AI responses generated via **LLM inference**, returned as natural language  
-
-### Action & Output Layer
-Executes side effects (opening URLs, timers, storage) and produces spoken output via **TTS**.
-
-This architecture mirrors real-world agentic system design, where AI is used selectively rather than universally.
-
-![image alt](https://github.com/SimarSaka/-Voice-Enabled-Web-Assistant/blob/main/second.jpeg?raw=true)
+ ![image alt](https://github.com/SimarSaka/-Voice-Enabled-Web-Assistant/blob/main/Fig02.jpeg?raw=true)
 
 ---
 
-## Core Capabilities
+## 3) Fast Path (Instant Reflexes via Command Registry)
+For basic commands, the system checks a **local command list** and runs the matching action instantly.  
+This gives low delay and can work even without internet.
 
-### Speech Processing
-- Real-time **Speech-to-Text (STT)** using the **Web Speech API**  
-- **Text-to-Speech (TTS)** synthesis for verbal responses  
-- Latency-aware interaction loop suitable for conversational flow  
-
-### Symbolic Command Execution (Local)
-- Rule-based intent classification  
-- Deterministic command execution  
-- Stateless and stateful operations (timers, notes)  
-- Browser-based persistence using **localStorage**  
-
-### Neural Language Understanding (Backend)
-- Integration with LLM APIs (Gemini / OpenAI-style models)  
-- Handles:
-  - Open-ended questions  
-  - Concept explanations  
-  - Natural language reasoning  
-- Backend prompt construction and response parsing  
-- API key isolation via environment variables  
-
-![image alt](https://github.com/SimarSaka/-Voice-Enabled-Web-Assistant/blob/main/first.jpeg?raw=true)
+ ![image alt](https://github.com/SimarSaka/-Voice-Enabled-Web-Assistant/blob/main/Fig03.jpeg?raw=true)
 ---
 
+## 4) Handoff to AI (Complex Queries)
+If no local command matches, the system escalates to the backend AI path.  
+The user gets feedback (example: “Let me think…”) while the request is processed.
 
-## Tech Stack
-
-### Frontend
-- HTML5  
-- CSS3 (CSS variables, theming)  
-- Vanilla JavaScript  
-- Web Speech API (Speech-to-Text and Text-to-Speech)  
-
-### Backend
-- Node.js  
-- Express  
-- Large Language Model API (Gemini / OpenAI-style)  
-- Prompt-based inference  
-- dotenv for secure environment variable management  
+ ![image alt](https://github.com/SimarSaka/-Voice-Enabled-Web-Assistant/blob/main/Fig04.jpeg?raw=true)
 
 ---
 
-## Running the System
+## 5) Backend (Assistant’s Brain + Memory)
+The backend server handles:
+- AI conversation requests
+- user-specific memory storage
+- secure system control actions
 
-### Frontend
-1. Open `index.html` in Chrome or Edge  
-2. Grant microphone permissions when prompted  
+This is where the “thinking” happens.
 
-> Note: Speech recognition performs best on Chromium-based browsers.
+ ![image alt](https://github.com/SimarSaka/-Voice-Enabled-Web-Assistant/blob/main/Fig05.jpeg?raw=true)
 
-### Backend
-cd backend
-npm install
-npm start
-## Design Philosophy
+---
 
-This project follows a **hybrid AI design approach**:
+## 6) Inside the `/chat` Endpoint (How AI Replies are Built)
+For AI responses, the backend follows a clear flow:
+1. Load user memory  
+2. Add conversation history  
+3. Build a final prompt  
+4. Call the AI model  
+5. Save the result back to memory
 
-- **Symbolic AI** is used for precision, speed, and deterministic behaviour in predefined commands  
-- **Subsymbolic AI (LLMs)** is used for generalisation, explanation, and flexible natural language reasoning  
+This ensures responses are contextual and consistent.
 
-This separation ensures predictable execution for known tasks while still enabling intelligent, open-ended responses when required.
+ ![image alt](https://github.com/SimarSaka/-Voice-Enabled-Web-Assistant/blob/main/Fig06.jpeg?raw=true)
+---
 
+## 7) Persistent Memory (Personalised Interaction)
+User profiles, preferences, and chat history are saved in a simple memory store (like a JSON file).  
+This allows the assistant to remember users across sessions.
 
+ ![image alt](https://github.com/SimarSaka/-Voice-Enabled-Web-Assistant/blob/main/Fig07.jpeg?raw=true)
+---
+
+## 8) System Control API (“Hands”)
+The assistant can perform controlled system actions such as:
+- open apps
+- open URLs
+- shutdown scheduling
+- sleep mode
+
+These actions are separated from chat to reduce risk.
+
+ ![image alt](https://github.com/SimarSaka/-Voice-Enabled-Web-Assistant/blob/main/Fig08.jpeg?raw=true)
+---
+
+## 9) Security (Defence in Depth)
+System-level actions are protected using:
+- token-based authentication
+- allow-listed commands (only safe commands can run)
+
+This prevents arbitrary or unsafe execution.
+
+ ![image alt](https://github.com/SimarSaka/-Voice-Enabled-Web-Assistant/blob/main/Fig09.jpeg?raw=true)
+
+---
+
+## 10) Connecting Reflexes to System Actions
+Client-side commands can trigger secure backend calls for system control.  
+The client sends a protected request (with token), and the backend performs the OS action safely.
+
+ ![image alt](https://github.com/SimarSaka/-Voice-Enabled-Web-Assistant/blob/main/Fig10.jpeg?raw=true)
+
+---
+
+## 11) Architectural Synthesis (Final Design Summary)
+This design is:
+- **Fast** (dual-path processing)
+- **Smart** (AI for complex queries)
+- **Personalised** (persistent memory)
+- **Secure** (allow-list + token protection)
+- **Maintainable** (decoupled components)
+
+ ![image alt](https://github.com/SimarSaka/-Voice-Enabled-Web-Assistant/blob/main/Fig11.jpeg?raw=true)
+
+---
